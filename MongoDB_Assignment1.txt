@@ -1,0 +1,75 @@
+Database Requirements:
+Create a database named ToDoDB.
+Design a collection named tasks.
+Each task should have information like title, description, status (e.g., "Pending," "Completed"), and due date.
+
+use ToDoDB;
+db.createCollection("tasks")
+
+
+CRUD Operations:
+Create Operation:
+Insert at least 5 tasks with various titles, descriptions, statuses, and due dates
+
+db.tasks.insertMany([
+    { title: "JavaScript Assignment", description: "Complete JavaScript assignment by implementing closures", status: "Completed", due_date: ISODate("2024-02-16") },
+    { title: "MongoDB Assignment", description: "Create MongoDB database and perform CRUD operations on a collection", status: "Pending", due_date: ISODate("2024-02-17") },
+    { title: "OOPs Assignment", description: "Implement Operator Overloading and Dynamaic Polymorphism", status: "Pending", due_date: ISODate("2024-02-19") },
+    { title: "HTTP Assignment", description: "Explore HTTP vesions", status: "Pending", due_date: ISODate("2024-02-19") },
+    {title:"Codewars", description:"Completed 250 score", status:"Pending", due_date: ISODate("2024-02-20")} 
+
+])
+
+
+Read Operation:
+Retrieve and display all tasks in the database.
+
+db.tasks.find()
+
+Display the details of a specific task by searching with its title or status.
+
+db.tasks.find({title:"JavaScript Assignment"});
+db.tasks.find({status:"Pending"});
+
+List all tasks that are pending or completed.
+List of all task which is still pending after due date.
+
+db.tasks.find({ $or: [{ status: "Pending" }, { status: "Completed" }] })
+db.tasks.find({ status: "Pending", due_date: { $lt:  new ISODate("2024-02-17") } })
+
+
+Show all task in pending key and completed key {pending: [task....], completed: [task...]}
+db.tasks.aggregate([
+    {
+        $group: {
+            _id: "$status",
+            tasks: { $push: "$$ROOT" }
+        }
+    }
+])
+
+
+Update Operation:
+Update the status of a specific task (e.g., from "Pending" to "Completed").
+db.tasks.updateOne({ title: "MongoDB Assignment" }, { $set: { status: "Completed" } })
+
+
+
+Update the due date of a task.
+
+db.tasks.updateOne({ title: "Codewars" }, { $set: { due_date: ISODate("2024-02-22") } })
+
+Update all pending task which due date is less than 2 days from today.
+db.tasks.updateMany({ status: "Pending", due_date: { $lt: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000) } }, { $set: { status: "Overdue" } })
+
+
+Delete Operation:
+Remove a task by its title or status.
+
+db.tasks.deleteOne({title:"Codewars"})
+
+Delete all completed tasks.
+db.tasks.deleteOne({status:"Completed"})
+
+
+
