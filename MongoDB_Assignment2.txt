@@ -1,0 +1,63 @@
+Map 
+
+db.students.aggregate([{
+$project:{
+name:1,scores:{
+$map:{
+input:"$scores",
+as:"score",
+in:{
+score:"$$score.score",
+type:"$$score.type",
+rating:{
+$cond:{
+if:
+{$lte:["$$score.score",30]},
+then:"Below Average",
+else:"Above Average"
+
+}
+}
+}
+}
+}
+
+}}])
+
+
+
+
+
+Reduce
+
+db.students.aggregate([{
+  
+  $project: {
+        "_id": 1,
+        "name":1,
+        "Total scores": {
+          $reduce: {
+            input: "$scores.score",
+            initialValue: 0,
+            in: { $add: [ "$$value", "$$this" ] }
+          }
+        }
+      }
+    
+}])
+
+
+
+Lookup
+
+db.employees.aggregate([
+  {
+    $lookup: {
+      from: "departments",
+      localField: "department_id",
+      foreignField: "_id",
+      as: "department",
+pipeline:[{$project:{_id:0,name:1}}
+]
+    }
+  }])
