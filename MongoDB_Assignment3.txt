@@ -1,0 +1,105 @@
+use company;
+// Insert Data
+db.employees.insertMany([
+  { name: "Yashraj", age: 30, position: "Software Engineer", department: "Engineering" ,employee_id:0},
+  { name: "Vineet", age: 25, position: "Marketing Manager", department: "Marketing",employee_id:1 },
+  { name: "Shubham", age: 35, position: "Project Manager", department: "Project Management",employee_id:2 },
+  { name: "Tanuja", age: 28, position: "Sales Executive", department: "Sales",employee_id:3 },
+  { name: "Saish", age: 32, position: "HR Manager", department: "Human Resources",employee_id:4 }
+])
+
+db.financial_details.insertMany([
+  { employee_id:0, salary: 50000, annual_income: 60000, expenses: 10000 },
+  { employee_id:1, salary: 60000, annual_income: 72000, expenses: 12000 },
+  { employee_id: 2, salary: 70000, annual_income: 84000, expenses: 14000 },
+  { employee_id: 3, salary: 45000, annual_income: 54000, expenses: 9000 },
+  { employee_id: 4, salary: 55000, annual_income: 66000, expenses: 11000 }
+])
+
+db.projects.insertMany([
+  { project_name: "Website Redesign", employee_id:0, status: "In Progress" },
+  { project_name: "Marketing Campaign", employee_id: 1, status: "Completed" },
+  { project_name: "New Product Launch", employee_id: 2, status: "Planned" },
+  { project_name: "Client Onboarding System", employee_id: 3, status: "In Progress" },
+  { project_name: "Employee Training Program", employee_id:4, status: "Planned" }
+])
+
+db.employees.find({age:{$gt:30}})
+db.employees.updateOne(
+   { name:"Yashraj" }, 
+   { $set: { position: "Senior Software Engineer" } } 
+)
+db.projects.deleteOne({project_name:"Marketing Campaign"})
+
+//Aggregations
+db.financial_details.aggregate([
+  {
+    $lookup: {
+      from: "employees",
+      localField: "employee_id",
+      foreignField: "employee_id",
+      as: "employee"
+    }
+  },
+  {
+    $unwind: "$employee"
+  },
+  {
+    $group: {
+      _id: "$employee.position",
+      averageSalary: { $avg: "$salary" }
+    }
+  }
+])
+
+.db.financial_details.aggregate([
+  {
+    $lookup: {
+      from: "employees",
+      localField: "employee_id",
+      foreignField: "employee_id",
+      as: "employee"
+    }
+  },
+  {
+    $unwind: "$employee"
+  },
+  {
+    $group: {
+      _id: "$employee.age",
+      employeeCount: { $sum: 1 }
+    }
+  }
+])
+
+db.projects.aggregate([{$sort: {
+  status: -1
+}}])
+
+.db.financial_details([
+  {
+    $match: {
+      annual_income: { $gt: 8000 }
+    }
+  },
+  {
+    $lookup: {
+      from: "employees",
+      localField: "employee_id",
+      foreignField: "employee_id",
+      as: "employee"
+    }
+  },
+  {
+    $unwind: "$employee"
+  },
+  {
+    $project: {
+      "name": "$employee.name",
+      "position": "$employee.position",
+      _id: 0
+    }
+  }
+])
+
+
